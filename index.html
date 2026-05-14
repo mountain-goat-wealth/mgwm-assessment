@@ -136,7 +136,7 @@
     /* ── Insurance ── */
     .ins-item { padding: 16px 0; border-bottom: 1px solid var(--mist); }
     .ins-item:last-child { border-bottom: none; }
-    .ins-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .ins-top { display: flex; flex-direction: column; gap: 10px; }
     .ins-name { font-weight: 700; font-size: 15px; }
     .ins-desc { font-size: 12px; color: var(--muted); margin-top: 2px; }
     .tgl-grp { display: flex; gap: 6px; }
@@ -163,6 +163,31 @@
     .acc-tbl td input, .acc-tbl td select { padding: 8px 9px; font-size: 13px; border-radius: 7px; }
     .acc-tbl td .pfx input { padding-left: 26px; }
     .acc-tbl td .pfx .sym { font-size: 13px; }
+
+    /* ── Accounts table → card layout on mobile ── */
+    @media(max-width:767px) {
+      .tbl-wrap { border-radius: 0; overflow: visible; }
+      .acc-tbl thead { display: none; }
+      .acc-tbl, .acc-tbl tbody, .acc-tbl tr { display: block; width: 100%; }
+      .acc-tbl tr {
+        background: var(--white); border: 1px solid var(--granite);
+        border-radius: 13px; padding: 14px 14px 10px; margin-bottom: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,.05);
+      }
+      .acc-tbl td {
+        display: block; width: 100%; border: none;
+        padding: 0 0 10px 0;
+      }
+      .acc-tbl td::before {
+        content: attr(data-label);
+        display: block; font-size: 11px; font-weight: 700;
+        color: var(--muted); text-transform: uppercase; letter-spacing: .4px;
+        margin-bottom: 5px;
+      }
+      .acc-tbl td input, .acc-tbl td select { width: 100%; }
+      .acc-tbl td.acc-rm-cell { padding-bottom: 2px; text-align: right; }
+      .acc-tbl td.acc-rm-cell::before { display: none; }
+    }
     .btn-rm {
       background: none; border: none; color: #dc3545; cursor: pointer;
       font-size: 19px; padding: 2px 7px; border-radius: 4px; transition: background .2s;
@@ -275,7 +300,10 @@
       align-items: center; gap: 7px; transition: all .2s;
     }
     .btn-pdf:hover { background: #7d7063; transform: translateY(-1px); }
-    .action-row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 26px; }
+    .action-row { display: flex; flex-direction: column; gap: 10px; margin-top: 26px; }
+    .action-row .btn-pdf, .action-row .btn-back-results {
+      width: 100%; justify-content: center; text-align: center;
+    }
     .results-disclosure { font-size: 11px; color: #888; line-height: 1.65; margin-top: 24px; margin-bottom: 0; }
   </style>
 </head>
@@ -691,12 +719,12 @@ function addAccRow() {
   const tbody = document.getElementById('accBody');
   const tr = document.createElement('tr');
   tr.innerHTML = `
-    <td><select>${ACC_TYPES.map(t=>`<option>${t}</option>`).join('')}</select></td>
-    <td><input type="text" placeholder="e.g. Fidelity" style="min-width:110px;"></td>
-    <td><div class="pfx"><span class="sym" style="font-size:13px">$</span>
+    <td data-label="Account Type"><select>${ACC_TYPES.map(t=>`<option>${t}</option>`).join('')}</select></td>
+    <td data-label="Financial Institution"><input type="text" placeholder="e.g. Fidelity" style="min-width:110px;"></td>
+    <td data-label="Market Value"><div class="pfx"><span class="sym" style="font-size:13px">$</span>
       <input type="number" min="0" placeholder="0" style="min-width:100px;"></div></td>
-    <td><input type="text" placeholder="e.g. Joint" style="min-width:80px;"></td>
-    <td><button class="btn-rm" onclick="this.closest('tr').remove()" title="Remove row">×</button></td>`;
+    <td data-label="Owner"><input type="text" placeholder="e.g. Joint" style="min-width:80px;"></td>
+    <td class="acc-rm-cell"><button class="btn-rm" onclick="this.closest('tr').remove()" title="Remove row">×</button></td>`;
   tbody.appendChild(tr);
 }
 
@@ -952,7 +980,7 @@ function renderResults(R) {
           </svg>
           Download PDF Summary
         </button>
-        <button class="btn-back" onclick="goTo(2)" style="font-size:14px;padding:11px 18px;">Revise My Answers</button>
+        <button class="btn-back btn-back-results" onclick="goTo(2)">Revise My Answers</button>
       </div>
     </div>
 

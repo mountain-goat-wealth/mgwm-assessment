@@ -191,6 +191,11 @@
       display: inline-flex; align-items: center; gap: 7px;
     }
     .btn-next:hover { background: #006a8e; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,126,167,.3); }
+
+    /* ── Validation ── */
+    .req-star { color: #dc3545; font-weight: 700; margin-left: 3px; }
+    .field-err { border-color: #dc3545 !important; box-shadow: 0 0 0 3px rgba(220,53,69,.15) !important; }
+    .err-msg { display: block; color: #dc3545; font-size: 12px; font-weight: 700; margin-top: 5px; }
     @media(max-width:460px){
       .nav { flex-direction: column-reverse; }
       .btn-back, .btn-next { width: 100%; justify-content: center; }
@@ -271,6 +276,7 @@
     }
     .btn-pdf:hover { background: #7d7063; transform: translateY(-1px); }
     .action-row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 26px; }
+    .results-disclosure { font-size: 11px; color: #888; line-height: 1.65; margin-top: 24px; margin-bottom: 0; }
   </style>
 </head>
 <body>
@@ -324,7 +330,7 @@
       </p>
 
       <div class="fg">
-        <label for="userName">What's your first name?
+        <label for="userName">What's your first name?<span class="req-star">*</span>
           <span class="hint">So we can make this feel a little more personal.</span>
         </label>
         <input type="text" id="userName" placeholder="e.g. Sarah" autocomplete="given-name">
@@ -344,26 +350,26 @@
 
       <div class="g2">
         <div class="fg">
-          <label for="curAge">Current Age <span class="hint">Your age today</span></label>
+          <label for="curAge">Current Age<span class="req-star">*</span> <span class="hint">Your age today</span></label>
           <input type="number" id="curAge" min="18" max="89" placeholder="45">
         </div>
         <div class="fg">
-          <label for="careerAge">Career Start Age <span class="hint">When you started working full-time</span></label>
+          <label for="careerAge">Career Start Age<span class="req-star">*</span> <span class="hint">When you started working full-time</span></label>
           <input type="number" id="careerAge" min="14" max="40" placeholder="22">
         </div>
         <div class="fg">
-          <label for="retAge">Target Retirement Age <span class="hint">When you hope to stop working</span></label>
+          <label for="retAge">Target Retirement Age<span class="req-star">*</span> <span class="hint">When you hope to stop working</span></label>
           <input type="number" id="retAge" min="40" max="90" placeholder="65">
         </div>
         <div class="fg">
-          <label for="lifeExp">Expected Lifespan <span class="hint">Plan conservatively — longer is safer</span></label>
+          <label for="lifeExp">Expected Lifespan<span class="req-star">*</span> <span class="hint">Plan conservatively — longer is safer</span></label>
           <input type="number" id="lifeExp" min="60" max="105" placeholder="90">
         </div>
       </div>
 
       <div class="nav">
         <button class="btn-back" onclick="goTo(1)">← Back</button>
-        <button class="btn-next" onclick="goTo(3)">Next →</button>
+        <button class="btn-next" onclick="validateAndGo(['curAge','careerAge','retAge','lifeExp'], 3)">Next →</button>
       </div>
     </div>
   </div>
@@ -375,7 +381,7 @@
       <p class="sub">Your ability to save consistently is one of the strongest predictors of retirement success.</p>
 
       <div class="fg">
-        <label for="income">Total Annual Household Income
+        <label for="income">Total Annual Household Income<span class="req-star">*</span>
           <span class="hint">Gross income from all sources — salaries, self-employment, rental income, etc.</span>
         </label>
         <div class="pfx"><span class="sym">$</span>
@@ -384,7 +390,7 @@
       </div>
 
       <div class="fg">
-        <label for="expenses">Total Annual Expenses
+        <label for="expenses">Total Annual Expenses<span class="req-star">*</span>
           <span class="hint">Everything you spend in a year — housing, food, lifestyle, debt payments</span>
         </label>
         <div class="pfx"><span class="sym">$</span>
@@ -403,7 +409,7 @@
 
       <div class="nav">
         <button class="btn-back" onclick="goTo(2)">← Back</button>
-        <button class="btn-next" onclick="goTo(4)">Next →</button>
+        <button class="btn-next" onclick="validateAndGo(['income','expenses'], 4)">Next →</button>
       </div>
     </div>
   </div>
@@ -520,7 +526,7 @@
       <p class="sub">Now let's look at what retirement actually costs — and what income you expect to have coming in.</p>
 
       <div class="fg">
-        <label for="retExp">Expected Annual Expenses in Retirement
+        <label for="retExp">Expected Annual Expenses in Retirement<span class="req-star">*</span>
           <span class="hint">What you expect to spend each year. Many people budget 70–80% of pre-retirement income.</span>
         </label>
         <div class="pfx"><span class="sym">$</span>
@@ -529,7 +535,7 @@
       </div>
 
       <div class="fg">
-        <label for="retInc">Expected Annual Retirement Income
+        <label for="retInc">Expected Annual Retirement Income<span class="req-star">*</span>
           <span class="hint">Social Security, pension, rental income, part-time work, annuities — anything guaranteed or expected.</span>
         </label>
         <div class="pfx"><span class="sym">$</span>
@@ -709,7 +715,42 @@ function recalcNW() {
 // ─────────────────────────────────────────────────────────────────
 //  NAVIGATION
 // ─────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────
+//  VALIDATION
+// ─────────────────────────────────────────────────────────────────
+function showFieldErr(el) {
+  el.classList.add('field-err');
+  const fg = el.closest('.fg');
+  if (fg && !fg.querySelector('.err-msg')) {
+    const msg = document.createElement('span');
+    msg.className = 'err-msg';
+    msg.textContent = 'Field is required.';
+    (el.closest('.pfx') || el).insertAdjacentElement('afterend', msg);
+  }
+  function clearOnInput() {
+    el.classList.remove('field-err');
+    const m = el.closest('.fg') && el.closest('.fg').querySelector('.err-msg');
+    if (m) m.remove();
+    el.removeEventListener('input', clearOnInput);
+  }
+  el.addEventListener('input', clearOnInput);
+}
+
+function validateFields(ids) {
+  let ok = true;
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el.value.trim()) { showFieldErr(el); ok = false; }
+  });
+  return ok;
+}
+
+function validateAndGo(ids, dest) {
+  if (validateFields(ids)) goTo(dest);
+}
+
 function startAssessment() {
+  if (!validateFields(['userName'])) return;
   const n = document.getElementById('userName').value.trim();
   S.name = n || 'there';
   document.getElementById('demoH').textContent = `Great, ${S.name}. Now let's look at your timeline.`;
@@ -739,6 +780,7 @@ function updateProgress() {
 //  CALCULATE & RENDER RESULTS
 // ─────────────────────────────────────────────────────────────────
 function calcResults() {
+  if (!validateFields(['retExp','retInc'])) return;
   const curAge   = +document.getElementById('curAge').value   || 0;
   const retAge   = +document.getElementById('retAge').value   || 65;
   const lifeExp  = +document.getElementById('lifeExp').value  || 90;
@@ -916,9 +958,11 @@ function renderResults(R) {
 
     <div class="cta-block" id="book-a-call">
       <h2>Ready to Turn These Insights Into a Plan?</h2>
-      <p>Our advisors specialize in helping people at exactly your stage of life build wealth with confidence — and without the stress.</p>
+      <p>Our advisors specialize in helping people at exactly your stage of life build wealth with confidence. Book your no-obligation 30-minute discovery call today.</p>
       <a href="#book-a-call" class="btn-cta">Talk to a Mountain Goat Advisor →</a>
-    </div>`;
+    </div>
+
+    <p class="results-disclosure">This Retirement Self-Assessment is provided by Mountain Goat Wealth Management LLC for informational and educational purposes only. It is not intended to constitute financial, investment, tax, or legal advice, and should not be relied upon as the basis for any financial decision. The calculations and projections shown are estimates based solely on the information you entered and involve assumptions that may not reflect your actual circumstances. Past performance is not indicative of future results. All investing involves risk, including the possible loss of principal. Mountain Goat Wealth Management LLC is a registered investment advisor in the States of Utah, Texas, and Wyoming. Registration does not imply a certain level of skill or training. Please consult with a qualified financial advisor, tax professional, or attorney before making any financial decisions.</p>`;
 
   // stash for PDF
   S._R = R;

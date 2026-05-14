@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Retirement Self-Assessment — Mountain Goat Wealth Management</title>
+  <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    :root {
+      --black: #1c1c1c;
+      --blue: #007ea7;
+      --granite: #b0bec5;
+      --mist: #e6f4f9;
+      --bedrock: #998b7d;
+      --white: #ffffff;
+      --muted: #666666;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Lato', sans-serif; background: var(--mist); color: var(--black); min-height: 100vh; }
+
+    /* ── Sticky top wrapper (header + progress bar) ── */
+    #topBar { position: sticky; top: 0; z-index: 100; }
+
+    /* ── Site header ── */
+    #siteHeader {
+      background: var(--black);
+      box-shadow: 0 2px 12px rgba(0,0,0,.3);
+    }
+    .sh-inner {
+      max-width: 740px; margin: 0 auto;
+      padding: 11px 20px;
+      display: flex; align-items: center; gap: 13px;
+    }
+    .sh-logo { height: 38px; width: 38px; object-fit: contain; flex-shrink: 0; }
+    .sh-logo-fallback {
+      height: 38px; width: 38px; flex-shrink: 0;
+      background: var(--blue); border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Merriweather', serif; font-weight: 900; font-size: 15px; color: var(--white);
+    }
+    .sh-text { display: flex; flex-direction: column; gap: 1px; }
+    .sh-org  { font-family: 'Merriweather', serif; font-weight: 700; font-size: 14px; color: var(--white); line-height: 1.2; }
+    .sh-sub  { font-family: 'Lato', sans-serif; font-size: 11.5px; color: var(--granite); font-weight: 400; letter-spacing: .2px; }
+    @media(max-width:400px){ .sh-org{ font-size: 12.5px; } .sh-sub{ display: none; } }
+
+    /* ── Progress bar ── */
+    #progressBar {
+      display: none;
+      background: var(--white); padding: 11px 24px 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,.07);
+    }
+    .pb-meta { display: flex; justify-content: space-between; margin-bottom: 8px; }
+    .pb-meta span { font-size: 12px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .5px; }
+    .pb-track { height: 5px; background: var(--granite); border-radius: 99px; overflow: hidden; }
+    .pb-fill  { height: 100%; background: var(--blue); border-radius: 99px; transition: width .35s ease; }
+
+    /* ── Layout ── */
+    .wrap { max-width: 740px; margin: 0 auto; padding: 32px 20px 96px; }
+
+    /* ── Screens ── */
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    /* ── Card ── */
+    .card {
+      background: var(--white); border-radius: 18px;
+      padding: 40px 36px; margin-bottom: 20px;
+      box-shadow: 0 4px 28px rgba(0,0,0,.06);
+    }
+    @media(max-width:540px){ .card{ padding: 24px 18px; } }
+
+    /* ── Typography ── */
+    h1,h2,h3 { font-family: 'Merriweather', serif; font-weight: 700; line-height: 1.3; }
+    h1 { font-size: clamp(1.5rem,4vw,2.1rem); margin-bottom: 12px; }
+    h2 { font-size: clamp(1.2rem,3vw,1.6rem); margin-bottom: 14px; }
+    h3 { font-size: 1rem; color: var(--blue); margin-bottom: 10px; }
+    p  { line-height: 1.75; color: #444; margin-bottom: 10px; }
+    .sub { color: var(--muted); font-size: 15px; margin-bottom: 28px; }
+
+    /* ── Form ── */
+    .fg { margin-bottom: 22px; }
+    label { display: block; font-weight: 700; font-size: 15px; margin-bottom: 7px; color: var(--black); }
+    label .hint { display: block; font-weight: 400; font-size: 12px; color: var(--muted); margin-top: 2px; }
+    input[type=text], input[type=number], select {
+      width: 100%; padding: 14px 16px; border: 2px solid var(--granite);
+      border-radius: 10px; font-family: 'Lato', sans-serif; font-size: 16px;
+      color: var(--black); background: var(--white); transition: border-color .2s;
+      -webkit-appearance: none; appearance: none;
+    }
+    select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7'%3E%3Cpath fill='%23007ea7' d='M5 7 0 0h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 14px center; padding-right: 38px;
+    }
+    input:focus, select:focus {
+      outline: none; border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(0,126,167,.14);
+    }
+    .pfx { position: relative; }
+    .pfx .sym { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+    .pfx input { padding-left: 26px; }
+    .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media(max-width:500px){ .g2{ grid-template-columns: 1fr; } }
+
+    /* ── Section dividers ── */
+    .sdiv {
+      border-left: 4px solid var(--blue); background: var(--mist);
+      padding: 10px 14px; border-radius: 0 8px 8px 0;
+      margin: 22px 0 12px;
+    }
+    .sdiv h3 { margin: 0; font-size: .95rem; }
+    .sdiv.sub-sec { border-color: var(--bedrock); background: transparent; }
+    .sdiv.sub-sec h3 { color: var(--bedrock); }
+
+    /* ── Net-worth line items ── */
+    .li-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 9px 0; border-bottom: 1px solid var(--mist);
+    }
+    .li-row:last-child { border-bottom: none; }
+    .li-row label { flex: 1; margin: 0; font-weight: 400; font-size: 14px; }
+    .li-row .pfx { width: 175px; flex-shrink: 0; }
+    @media(max-width:500px){
+      .li-row { flex-direction: column; align-items: stretch; }
+      .li-row .pfx { width: 100%; }
+    }
+
+    /* ── Totals row ── */
+    .tot-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 14px 18px; border-radius: 10px; margin-top: 10px;
+      font-weight: 700;
+    }
+    .tot-row span:last-child { font-family: 'Merriweather', serif; font-size: 1.05rem; }
+
+    /* ── Insurance ── */
+    .ins-item { padding: 16px 0; border-bottom: 1px solid var(--mist); }
+    .ins-item:last-child { border-bottom: none; }
+    .ins-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .ins-name { font-weight: 700; font-size: 15px; }
+    .ins-desc { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .tgl-grp { display: flex; gap: 6px; }
+    .tgl {
+      padding: 8px 13px; border: 2px solid var(--granite); border-radius: 8px;
+      background: transparent; font-family: 'Lato', sans-serif; font-size: 13px;
+      font-weight: 700; cursor: pointer; transition: all .18s; color: var(--muted);
+    }
+    .tgl.y { background: #d4edda; border-color: #28a745; color: #155724; }
+    .tgl.n { background: #f8d7da; border-color: #dc3545; color: #721c24; }
+    .tgl.na{ background: var(--mist); border-color: var(--granite); color: var(--muted); }
+    .ins-cont { margin-top: 10px; }
+
+    /* ── Accounts table ── */
+    .tbl-wrap { overflow-x: auto; border-radius: 10px; }
+    .acc-tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .acc-tbl th {
+      background: var(--blue); color: var(--white); padding: 11px 9px;
+      text-align: left; font-family: 'Lato', sans-serif; font-weight: 700;
+    }
+    .acc-tbl th:first-child { border-radius: 8px 0 0 0; }
+    .acc-tbl th:last-child  { border-radius: 0 8px 0 0; width: 36px; }
+    .acc-tbl td { padding: 7px 5px; border-bottom: 1px solid var(--mist); vertical-align: middle; }
+    .acc-tbl td input, .acc-tbl td select { padding: 8px 9px; font-size: 13px; border-radius: 7px; }
+    .acc-tbl td .pfx input { padding-left: 26px; }
+    .acc-tbl td .pfx .sym { font-size: 13px; }
+    .btn-rm {
+      background: none; border: none; color: #dc3545; cursor: pointer;
+      font-size: 19px; padding: 2px 7px; border-radius: 4px; transition: background .2s;
+    }
+    .btn-rm:hover { background: #f8d7da; }
+    .btn-add {
+      margin-top: 12px; width: 100%; padding: 11px;
+      background: var(--mist); border: 2px dashed var(--blue);
+      color: var(--blue); border-radius: 10px; font-family: 'Lato', sans-serif;
+      font-size: 14px; font-weight: 700; cursor: pointer; transition: all .2s;
+    }
+    .btn-add:hover { background: var(--blue); color: var(--white); }
+
+    /* ── Navigation buttons ── */
+    .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 32px; gap: 14px; }
+    .btn-back {
+      background: transparent; color: var(--black); border: 2px solid var(--granite);
+      padding: 13px 24px; border-radius: 11px; font-family: 'Lato', sans-serif;
+      font-size: 15px; font-weight: 700; cursor: pointer; transition: all .2s;
+    }
+    .btn-back:hover { border-color: var(--blue); color: var(--blue); }
+    .btn-next {
+      background: var(--blue); color: var(--white); border: none;
+      padding: 14px 30px; border-radius: 11px; font-family: 'Lato', sans-serif;
+      font-size: 16px; font-weight: 700; cursor: pointer; transition: all .2s;
+      display: inline-flex; align-items: center; gap: 7px;
+    }
+    .btn-next:hover { background: #006a8e; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,126,167,.3); }
+    @media(max-width:460px){
+      .nav { flex-direction: column-reverse; }
+      .btn-back, .btn-next { width: 100%; justify-content: center; }
+    }
+
+    /* ── Logo ── */
+    .logo-wrap { display: flex; align-items: center; gap: 14px; margin-bottom: 36px; }
+    .logo-mark {
+      width: 56px; height: 56px; background: var(--blue); border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--white); font-family: 'Merriweather', serif; font-weight: 900; font-size: 20px;
+      flex-shrink: 0;
+    }
+    .logo-text .l1 { font-family: 'Merriweather', serif; font-weight: 700; font-size: 14px; line-height: 1.3; }
+    .logo-text .l2 { font-size: 12px; color: var(--bedrock); }
+
+    /* ── Welcome ── */
+    .welcome-hero { text-align: center; margin-bottom: 40px; }
+    .hero-mark {
+      width: 84px; height: 84px; margin-bottom: 16px;
+      display: inline-block;
+    }
+    .hero-mark img { width: 84px; height: 84px; object-fit: contain; display: block; }
+    .hero-mark-fallback {
+      width: 84px; height: 84px; background: var(--blue); border-radius: 22px;
+      display: inline-flex; align-items: center; justify-content: center;
+      color: var(--white); font-family: 'Merriweather', serif; font-weight: 900; font-size: 28px;
+      margin-bottom: 16px; box-shadow: 0 6px 24px rgba(0,126,167,.3);
+    }
+    .hero-org { font-family: 'Merriweather', serif; font-weight: 700; font-size: 1.1rem; }
+    .hero-tag { font-size: 13px; color: var(--bedrock); margin-top: 4px; }
+
+    /* ── Results ── */
+    .result-label { font-size: 12px; color: var(--bedrock); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+    .result-headline { font-family: 'Merriweather', serif; font-weight: 900; font-size: clamp(1.3rem,3.5vw,1.9rem); color: var(--blue); line-height: 1.3; margin-bottom: 4px; }
+    .scorecard { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin: 24px 0; }
+    @media(max-width:560px){ .scorecard{ grid-template-columns: repeat(2,1fr); } }
+    @media(max-width:360px){ .scorecard{ grid-template-columns: 1fr; } }
+    .mc {
+      border: 2px solid var(--mist); border-radius: 13px;
+      padding: 18px 14px; text-align: center; background: var(--white);
+      transition: transform .18s;
+    }
+    .mc:hover { transform: translateY(-2px); }
+    .mc .mv { font-family: 'Merriweather', serif; font-size: 1.6rem; font-weight: 700; color: var(--blue); line-height: 1; margin-bottom: 5px; }
+    .mc .ml { font-size: 11px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .4px; }
+    .mc.good { border-color: #28a745; } .mc.good .mv { color: #28a745; }
+    .mc.warn { border-color: #e6a817; } .mc.warn .mv { color: #c98a00; }
+    .mc.alert{ border-color: #dc3545; } .mc.alert .mv{ color: #dc3545; }
+    .interp-box { background: var(--mist); border-radius: 12px; padding: 22px 24px; margin: 22px 0; }
+    .interp-box p { margin: 0; font-size: 15px; line-height: 1.8; color: var(--black); }
+    .ns-item { display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--mist); }
+    .ns-item:last-child { border-bottom: none; }
+    .ns-icon {
+      width: 34px; height: 34px; background: var(--mist); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 15px;
+    }
+    .ns-body strong { display: block; font-size: 15px; margin-bottom: 3px; }
+    .ns-body p { margin: 0; font-size: 13px; color: var(--muted); line-height: 1.55; }
+    .cta-block {
+      text-align: center; padding: 44px 28px;
+      background: linear-gradient(135deg, var(--blue), #005f80);
+      border-radius: 18px; margin-top: 20px;
+    }
+    .cta-block h2 { color: var(--white); margin-bottom: 10px; }
+    .cta-block p  { color: rgba(255,255,255,.85); margin-bottom: 24px; font-size: 15px; }
+    .btn-cta {
+      display: inline-block; background: var(--white); color: var(--blue);
+      padding: 15px 30px; border-radius: 11px; font-family: 'Lato', sans-serif;
+      font-size: 16px; font-weight: 700; text-decoration: none; transition: all .2s;
+    }
+    .btn-cta:hover { background: var(--mist); transform: translateY(-1px); box-shadow: 0 4px 20px rgba(0,0,0,.2); }
+    .btn-pdf {
+      background: var(--bedrock); color: var(--white); border: none;
+      padding: 13px 24px; border-radius: 10px; font-family: 'Lato', sans-serif;
+      font-size: 14px; font-weight: 700; cursor: pointer; display: inline-flex;
+      align-items: center; gap: 7px; transition: all .2s;
+    }
+    .btn-pdf:hover { background: #7d7063; transform: translateY(-1px); }
+    .action-row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 26px; }
+  </style>
+</head>
+<body>
+
+<!-- Sticky top bar: site header + progress bar -->
+<div id="topBar">
+  <header id="siteHeader">
+    <div class="sh-inner">
+      <img src="assets/images/logo-badge.svg" alt="MGWM logo" class="sh-logo"
+           onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+      <div class="sh-logo-fallback" style="display:none">MG</div>
+      <div class="sh-text">
+        <span class="sh-org">Mountain Goat Wealth Management</span>
+        <span class="sh-sub">Retirement Self-Assessment</span>
+      </div>
+    </div>
+  </header>
+
+  <div id="progressBar">
+    <div class="pb-meta">
+      <span id="pbStep">Step 2 of 8</span>
+      <span id="pbName">Timeline</span>
+    </div>
+    <div class="pb-track"><div class="pb-fill" id="pbFill" style="width:25%"></div></div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- ═══════════════════════════════ SCREEN 1 · WELCOME ═══════════════════════════════ -->
+  <div class="screen active" id="s1">
+    <div class="card">
+      <div class="welcome-hero">
+        <div class="hero-mark">
+          <img src="assets/images/logo-badge.svg" alt="Mountain Goat Wealth Management"
+               onerror="this.parentElement.outerHTML='<div class=\'hero-mark-fallback\'>MG</div>'">
+        </div>
+        <div class="hero-org">Mountain Goat Wealth Management</div>
+        <div class="hero-tag">Conquer Your Climb to Retirement</div>
+      </div>
+
+      <h1>Your Retirement Self-Assessment</h1>
+      <p class="sub">
+        Retirement planning isn't just about numbers — it's about knowing where you stand today so
+        you can build the future you want. This 10-minute assessment gives you a clear, personalized
+        picture of your retirement readiness.
+      </p>
+      <p style="font-size:14px;color:var(--muted);margin-bottom:30px;">
+        Everything stays private. Your answers are never stored or sent anywhere —
+        all calculations happen right here on your device.
+      </p>
+
+      <div class="fg">
+        <label for="userName">What's your first name?
+          <span class="hint">So we can make this feel a little more personal.</span>
+        </label>
+        <input type="text" id="userName" placeholder="e.g. Sarah" autocomplete="given-name">
+      </div>
+
+      <button class="btn-next" onclick="startAssessment()" style="width:100%;justify-content:center;font-size:18px;padding:18px 0;">
+        Begin Assessment →
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ SCREEN 2 · DEMOGRAPHICS ═══════════════════════════════ -->
+  <div class="screen" id="s2">
+    <div class="card">
+      <h2 id="demoH">Tell us about your timeline</h2>
+      <p class="sub">Understanding where you are in your career helps us map your journey to retirement.</p>
+
+      <div class="g2">
+        <div class="fg">
+          <label for="curAge">Current Age <span class="hint">Your age today</span></label>
+          <input type="number" id="curAge" min="18" max="89" placeholder="45">
+        </div>
+        <div class="fg">
+          <label for="careerAge">Career Start Age <span class="hint">When you started working full-time</span></label>
+          <input type="number" id="careerAge" min="14" max="40" placeholder="22">
+        </div>
+        <div class="fg">
+          <label for="retAge">Target Retirement Age <span class="hint">When you hope to stop working</span></label>
+          <input type="number" id="retAge" min="40" max="90" placeholder="65">
+        </div>
+        <div class="fg">
+          <label for="lifeExp">Expected Lifespan <span class="hint">Plan conservatively — longer is safer</span></label>
+          <input type="number" id="lifeExp" min="60" max="105" placeholder="90">
+        </div>
+      </div>
+
+      <div class="nav">
+        <button class="btn-back" onclick="goTo(1)">← Back</button>
+        <button class="btn-next" onclick="goTo(3)">Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ SCREEN 3 · CASH MANAGEMENT ═══════════════════════════════ -->
+  <div class="screen" id="s3">
+    <div class="card">
+      <h2>Cash Flow &amp; Savings</h2>
+      <p class="sub">Your ability to save consistently is one of the strongest predictors of retirement success.</p>
+
+      <div class="fg">
+        <label for="income">Total Annual Household Income
+          <span class="hint">Gross income from all sources — salaries, self-employment, rental income, etc.</span>
+        </label>
+        <div class="pfx"><span class="sym">$</span>
+          <input type="number" id="income" min="0" placeholder="120,000">
+        </div>
+      </div>
+
+      <div class="fg">
+        <label for="expenses">Total Annual Expenses
+          <span class="hint">Everything you spend in a year — housing, food, lifestyle, debt payments</span>
+        </label>
+        <div class="pfx"><span class="sym">$</span>
+          <input type="number" id="expenses" min="0" placeholder="84,000">
+        </div>
+      </div>
+
+      <div class="fg">
+        <label for="cuttable">Estimated Cuttable Expenses Per Year
+          <span class="hint">Discretionary spending you could reduce if needed — dining, travel, subscriptions</span>
+        </label>
+        <div class="pfx"><span class="sym">$</span>
+          <input type="number" id="cuttable" min="0" placeholder="12,000">
+        </div>
+      </div>
+
+      <div class="nav">
+        <button class="btn-back" onclick="goTo(2)">← Back</button>
+        <button class="btn-next" onclick="goTo(4)">Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ SCREEN 4 · NET WORTH ═══════════════════════════════ -->
+  <div class="screen" id="s4">
+    <div class="card">
+      <h2>Your Net Worth</h2>
+      <p class="sub">Enter approximate values — round numbers are fine. Leave items blank if they don't apply.</p>
+
+      <div class="sdiv"><h3>Assets</h3></div>
+
+      <div class="sdiv sub-sec"><h3>Real Estate</h3></div>
+      <div id="grpRealEstate"></div>
+
+      <div class="sdiv sub-sec"><h3>Business</h3></div>
+      <div id="grpBusiness"></div>
+
+      <div class="sdiv sub-sec"><h3>Personal Use</h3></div>
+      <div id="grpPersonal"></div>
+
+      <div class="sdiv sub-sec"><h3>Cash &amp; Equivalents</h3></div>
+      <div id="grpCash"></div>
+
+      <div class="sdiv sub-sec"><h3>Investment Accounts</h3></div>
+      <div id="grpInvestment"></div>
+
+      <div class="sdiv sub-sec"><h3>Retirement Accounts</h3></div>
+      <div id="grpRetirement"></div>
+
+      <div class="sdiv sub-sec"><h3>Other Assets</h3></div>
+      <div id="grpOtherAssets"></div>
+
+      <div class="tot-row" style="background:var(--blue);color:var(--white);">
+        <span>Total Assets</span><span id="totAssetsLbl">$0</span>
+      </div>
+
+      <!-- Liabilities -->
+      <div class="sdiv" style="margin-top:32px;"><h3>Liabilities</h3></div>
+
+      <div class="sdiv sub-sec"><h3>Mortgages</h3></div>
+      <div id="grpMortgages"></div>
+
+      <div class="sdiv sub-sec"><h3>Business Debt</h3></div>
+      <div id="grpBizDebt"></div>
+
+      <div class="sdiv sub-sec"><h3>Long-Term Debt</h3></div>
+      <div id="grpLongDebt"></div>
+
+      <div class="sdiv sub-sec"><h3>Consumer Debt</h3></div>
+      <div id="grpConsumer"></div>
+
+      <div class="sdiv sub-sec"><h3>Other Liabilities</h3></div>
+      <div id="grpOtherLiab"></div>
+
+      <div class="tot-row" style="background:var(--bedrock);color:var(--white);">
+        <span>Total Liabilities</span><span id="totLiabLbl">$0</span>
+      </div>
+      <div class="tot-row" style="background:var(--black);color:var(--white);margin-top:8px;">
+        <span>Net Worth</span><span id="netWorthLbl">$0</span>
+      </div>
+
+      <div class="nav">
+        <button class="btn-back" onclick="goTo(3)">← Back</button>
+        <button class="btn-next" onclick="goTo(5)">Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ SCREEN 5 · INSURANCE ═══════════════════════════════ -->
+  <div class="screen" id="s5">
+    <div class="card">
+      <h2>Insurance Coverage</h2>
+      <p class="sub">Insurance is the foundation of a resilient financial plan. For each area, tell us whether you're covered — and if not, what your contingency looks like.</p>
+      <div id="insItems"></div>
+      <div class="nav">
+        <button class="btn-back" onclick="goTo(4)">← Back</button>
+        <button class="btn-next" onclick="goTo(6)">Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ SCREEN 6 · ACCOUNTS ═══════════════════════════════ -->
+  <div class="screen" id="s6">
+    <div class="card">
+      <h2>Your Financial Accounts</h2>
+      <p class="sub">Add your major accounts here. This helps us understand how your wealth is structured and where your retirement savings live.</p>
+      <div class="tbl-wrap">
+        <table class="acc-tbl">
+          <thead>
+            <tr>
+              <th>Account Type</th>
+              <th>Financial Institution</th>
+              <th>Market Value</th>
+              <th>Owner</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="accBody"></tbody>
+        </table>
+      </div>
+      <button class="btn-add" onclick="addAccRow()">+ Add Account</button>
+      <div class="nav">
+        <button class="btn-back" onclick="goTo(5)">← Back</button>
+        <button class="btn-next" onclick="goTo(7)">Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ SCREEN 7 · RETIREMENT GOALS ═══════════════════════════════ -->
+  <div class="screen" id="s7">
+    <div class="card">
+      <h2>Your Retirement Vision</h2>
+      <p class="sub">Now let's look at what retirement actually costs — and what income you expect to have coming in.</p>
+
+      <div class="fg">
+        <label for="retExp">Expected Annual Expenses in Retirement
+          <span class="hint">What you expect to spend each year. Many people budget 70–80% of pre-retirement income.</span>
+        </label>
+        <div class="pfx"><span class="sym">$</span>
+          <input type="number" id="retExp" min="0" placeholder="72,000">
+        </div>
+      </div>
+
+      <div class="fg">
+        <label for="retInc">Expected Annual Retirement Income
+          <span class="hint">Social Security, pension, rental income, part-time work, annuities — anything guaranteed or expected.</span>
+        </label>
+        <div class="pfx"><span class="sym">$</span>
+          <input type="number" id="retInc" min="0" placeholder="24,000">
+        </div>
+      </div>
+
+      <div class="nav">
+        <button class="btn-back" onclick="goTo(6)">← Back</button>
+        <button class="btn-next" onclick="calcResults()">See My Results →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ SCREEN 8 · RESULTS ═══════════════════════════════ -->
+  <div class="screen" id="s8"></div>
+
+</div><!-- /wrap -->
+
+<script>
+// ─────────────────────────────────────────────────────────────────
+//  DATA DEFINITIONS
+// ─────────────────────────────────────────────────────────────────
+const ASSET_GROUPS = {
+  grpRealEstate: ['Primary Home','Vacation / Second Home','Investment Property','Raw Land','Other Real Estate'],
+  grpBusiness:   ['Business Value (Equity)','Partnership / LLC Interest','Buy-Sell Agreement Value','Other Business Asset'],
+  grpPersonal:   ['Vehicles','Jewelry / Art / Collectibles','Furniture & Household','Other Personal Use Assets'],
+  grpCash:       ['Checking Accounts','Savings Accounts','Money Market Accounts','CDs / Treasury Bills','Cash on Hand'],
+  grpInvestment: ['Brokerage / Taxable Accounts','Individual Stocks','Bonds','Mutual Funds / ETFs','REITs','Other Investments'],
+  grpRetirement: ['401(k) / 403(b)','Traditional IRA','Roth IRA / Roth 401(k)','SEP IRA / SIMPLE IRA','Pension (Lump Sum Value)','Annuities','Other Retirement Accounts'],
+  grpOtherAssets:['Life Insurance (Cash Value)','HSA Balance','Notes Receivable / Loans Owed to You','Other Assets']
+};
+
+const LIAB_GROUPS = {
+  grpMortgages: ['Primary Home Mortgage','Second Home Mortgage','Investment Property Mortgage','Home Equity Loan / HELOC','Other Mortgage'],
+  grpBizDebt:   ['Business Loans','SBA Loans','Equipment Financing','Other Business Debt'],
+  grpLongDebt:  ['Student Loans','Auto Loans','Personal Loans (Long-Term)','Other Long-Term Debt'],
+  grpConsumer:  ['Credit Card Balances','Medical Debt','Lines of Credit','Other Consumer Debt'],
+  grpOtherLiab: ['Tax Liabilities / IRS Debt','Legal Judgments','Other Liabilities']
+};
+
+const INS_GROUPS = [
+  { id:'life',        name:'Life Insurance',               desc:'Protects your family if you pass away' },
+  { id:'disability',  name:'Disability Insurance',         desc:'Replaces income if you can\'t work' },
+  { id:'medical',     name:'Medical / Health Insurance',   desc:'Covers healthcare costs' },
+  { id:'property',    name:'Property / Homeowners',        desc:'Protects your home and belongings' },
+  { id:'auto',        name:'Auto Insurance',               desc:'Covers vehicles and liability' },
+  { id:'recreational',name:'Recreational Vehicles',        desc:'Boats, ATVs, RVs, motorcycles' },
+  { id:'business',    name:'Business Insurance',           desc:'E&O, general liability, key-person, etc.' }
+];
+
+const CONTINGENCY_OPTS = [
+  'Select one…',
+  'Fully covered — no gap',
+  'Partially covered — some gap exists',
+  'Self-insured — intentional, funded',
+  'Relying on employer coverage only',
+  'Planning to obtain coverage soon',
+  'No coverage — no plan in place',
+  'N/A — not applicable'
+];
+
+const ACC_TYPES = [
+  'Checking','Savings','Money Market','CD / Treasury','Brokerage (Taxable)',
+  'Traditional IRA','Roth IRA','401(k)','Roth 401(k)','403(b)','457(b)',
+  'SEP IRA','SIMPLE IRA','Pension','Annuity','HSA','529 Education',
+  'Trust Account','Other'
+];
+
+// ─────────────────────────────────────────────────────────────────
+//  STATE
+// ─────────────────────────────────────────────────────────────────
+const S = {
+  screen: 1,
+  name: '',
+  ins: {}   // keyed by ins id → { status, contingency }
+};
+
+// ─────────────────────────────────────────────────────────────────
+//  INIT
+// ─────────────────────────────────────────────────────────────────
+(function init() {
+  // Build net-worth inputs
+  for (const [grpId, items] of Object.entries(ASSET_GROUPS)) {
+    const el = document.getElementById(grpId);
+    items.forEach(item => {
+      el.innerHTML += lineItem(item, 'asset');
+    });
+  }
+  for (const [grpId, items] of Object.entries(LIAB_GROUPS)) {
+    const el = document.getElementById(grpId);
+    items.forEach(item => {
+      el.innerHTML += lineItem(item, 'liab');
+    });
+  }
+
+  // Build insurance
+  const insEl = document.getElementById('insItems');
+  INS_GROUPS.forEach(ins => {
+    S.ins[ins.id] = { status: null, contingency: '' };
+    insEl.innerHTML += `
+      <div class="ins-item">
+        <div class="ins-top">
+          <div>
+            <div class="ins-name">${ins.name}</div>
+            <div class="ins-desc">${ins.desc}</div>
+          </div>
+          <div class="tgl-grp">
+            <button class="tgl" id="it-${ins.id}-yes" onclick="setIns('${ins.id}','yes')">Yes</button>
+            <button class="tgl" id="it-${ins.id}-no"  onclick="setIns('${ins.id}','no')">No</button>
+            <button class="tgl" id="it-${ins.id}-na"  onclick="setIns('${ins.id}','na')">N/A</button>
+          </div>
+        </div>
+        <div class="ins-cont" id="ic-${ins.id}" style="display:none">
+          <label style="font-size:13px;margin-bottom:6px;font-weight:400;">Contingency plan if a claim occurs:</label>
+          <select onchange="S.ins['${ins.id}'].contingency=this.value">
+            ${CONTINGENCY_OPTS.map(o=>`<option>${o}</option>`).join('')}
+          </select>
+        </div>
+      </div>`;
+  });
+
+  // Seed one account row
+  addAccRow();
+})();
+
+function lineItem(label, grp) {
+  return `<div class="li-row">
+    <label>${label}</label>
+    <div class="pfx"><span class="sym">$</span>
+      <input type="number" min="0" placeholder="0"
+        data-grp="${grp}" oninput="recalcNW()" onchange="recalcNW()">
+    </div>
+  </div>`;
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  INSURANCE TOGGLES
+// ─────────────────────────────────────────────────────────────────
+function setIns(id, status) {
+  S.ins[id].status = status;
+  ['yes','no','na'].forEach(s => {
+    const btn = document.getElementById(`it-${id}-${s}`);
+    btn.className = 'tgl' + (s===status ? (s==='yes'?' y':s==='no'?' n':' na') : '');
+  });
+  document.getElementById(`ic-${id}`).style.display = status === 'no' ? 'block' : 'none';
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  ACCOUNTS TABLE
+// ─────────────────────────────────────────────────────────────────
+function addAccRow() {
+  const tbody = document.getElementById('accBody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><select>${ACC_TYPES.map(t=>`<option>${t}</option>`).join('')}</select></td>
+    <td><input type="text" placeholder="e.g. Fidelity" style="min-width:110px;"></td>
+    <td><div class="pfx"><span class="sym" style="font-size:13px">$</span>
+      <input type="number" min="0" placeholder="0" style="min-width:100px;"></div></td>
+    <td><input type="text" placeholder="e.g. Joint" style="min-width:80px;"></td>
+    <td><button class="btn-rm" onclick="this.closest('tr').remove()" title="Remove row">×</button></td>`;
+  tbody.appendChild(tr);
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  NET WORTH LIVE TOTALS
+// ─────────────────────────────────────────────────────────────────
+function recalcNW() {
+  let a = 0, l = 0;
+  document.querySelectorAll('[data-grp="asset"]').forEach(el => { a += +el.value || 0; });
+  document.querySelectorAll('[data-grp="liab"]').forEach(el  => { l += +el.value || 0; });
+  document.getElementById('totAssetsLbl').textContent = fmt(a);
+  document.getElementById('totLiabLbl').textContent   = fmt(l);
+  document.getElementById('netWorthLbl').textContent  = fmt(a - l);
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  NAVIGATION
+// ─────────────────────────────────────────────────────────────────
+function startAssessment() {
+  const n = document.getElementById('userName').value.trim();
+  S.name = n || 'there';
+  document.getElementById('demoH').textContent = `Great, ${S.name}. Now let's look at your timeline.`;
+  goTo(2);
+}
+
+function goTo(n) {
+  document.getElementById(`s${S.screen}`).classList.remove('active');
+  S.screen = n;
+  document.getElementById(`s${S.screen}`).classList.add('active');
+  updateProgress();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+const SCREEN_NAMES = ['','Welcome','Timeline','Cash Flow','Net Worth','Insurance','Accounts','Goals','Results'];
+
+function updateProgress() {
+  const bar = document.getElementById('progressBar');
+  if (S.screen === 1) { bar.style.display = 'none'; return; }
+  bar.style.display = 'block';
+  document.getElementById('pbStep').textContent = `Step ${S.screen} of 8`;
+  document.getElementById('pbName').textContent = SCREEN_NAMES[S.screen] || '';
+  document.getElementById('pbFill').style.width = `${(S.screen / 8) * 100}%`;
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  CALCULATE & RENDER RESULTS
+// ─────────────────────────────────────────────────────────────────
+function calcResults() {
+  const curAge   = +document.getElementById('curAge').value   || 0;
+  const retAge   = +document.getElementById('retAge').value   || 65;
+  const lifeExp  = +document.getElementById('lifeExp').value  || 90;
+  const income   = +document.getElementById('income').value   || 0;
+  const expenses = +document.getElementById('expenses').value || 0;
+  const cuttable = +document.getElementById('cuttable').value || 0;
+  const retExp   = +document.getElementById('retExp').value   || 0;
+  const retInc   = +document.getElementById('retInc').value   || 0;
+
+  // Assets & liabilities
+  let totalAssets = 0, retAssets = 0, invAssets = 0, totalLiab = 0;
+  document.querySelectorAll('[data-grp="asset"]').forEach(el => { totalAssets += +el.value || 0; });
+  document.querySelectorAll('[data-grp="liab"]').forEach(el  => { totalLiab  += +el.value || 0; });
+  document.querySelectorAll('#grpRetirement  [data-grp="asset"]').forEach(el => { retAssets += +el.value || 0; });
+  document.querySelectorAll('#grpInvestment  [data-grp="asset"]').forEach(el => { invAssets += +el.value || 0; });
+
+  const retirementPortfolio = retAssets + invAssets; // what can fund retirement
+
+  const netWorth         = totalAssets - totalLiab;
+  const savingsRate      = income > 0 ? (income - expenses) / income : 0;
+  const yearsToRet       = Math.max(0, retAge - curAge);
+  const retirementYears  = Math.max(0, lifeExp - retAge);
+  const annualGap        = Math.max(0, retExp - retInc);
+  const capitalNeeded    = annualGap > 0 ? annualGap / 0.04 : 0;
+  const fundingPct       = capitalNeeded > 0 ? retirementPortfolio / capitalNeeded : (retExp > 0 ? 1 : 0);
+  const retGap           = Math.max(0, capitalNeeded - retirementPortfolio);
+  const insGaps          = INS_GROUPS.filter(g => S.ins[g.id].status === 'no').map(g => g.name);
+
+  const R = {
+    curAge, retAge, lifeExp, income, expenses, cuttable,
+    retExp, retInc, totalAssets, totalLiab, netWorth,
+    retAssets, invAssets, retirementPortfolio,
+    savingsRate, yearsToRet, retirementYears,
+    annualGap, capitalNeeded, fundingPct, retGap, insGaps
+  };
+
+  renderResults(R);
+  goTo(8);
+}
+
+function cardClass(metric, val) {
+  if (metric === 'sr')  return val >= 0.20 ? 'good' : val >= 0.10 ? 'warn' : 'alert';
+  if (metric === 'nw')  return val > 0 ? 'good' : val > -50000 ? 'warn' : 'alert';
+  if (metric === 'yr')  return val >= 15 ? 'good' : val >= 5 ? 'warn' : 'alert';
+  if (metric === 'fp')  return val >= 0.80 ? 'good' : val >= 0.50 ? 'warn' : 'alert';
+  if (metric === 'ig')  return val === 0 ? 'good' : val <= 2 ? 'warn' : 'alert';
+  return '';
+}
+
+function renderResults(R) {
+  const nm = S.name;
+
+  // ── Headline
+  let headline;
+  if (R.capitalNeeded === 0 && R.retExp === 0) {
+    headline = `${nm}, let's build a clear picture of your retirement future.`;
+  } else if (R.fundingPct >= 1) {
+    headline = `${nm}, you are fully funded for retirement — and then some.`;
+  } else if (R.fundingPct >= 0.75) {
+    headline = `${nm}, you are ${pct(R.fundingPct)} of the way to a fully funded retirement.`;
+  } else if (R.fundingPct >= 0.50) {
+    headline = `${nm}, you've built ${pct(R.fundingPct)} of the retirement capital you'll need — there's real ground to cover.`;
+  } else if (R.fundingPct > 0) {
+    headline = `${nm}, you're ${pct(R.fundingPct)} funded for retirement — but you have time to change that.`;
+  } else {
+    headline = `${nm}, let's build your retirement roadmap from the ground up.`;
+  }
+
+  // ── Interpretation
+  let interp = '';
+  if (R.savingsRate >= 0.20) {
+    interp += `Your savings rate of ${pct(R.savingsRate)} is strong — you're building wealth consistently. `;
+  } else if (R.savingsRate > 0) {
+    interp += `Your current savings rate is ${pct(R.savingsRate)}, which has meaningful room to grow — even small increases compound dramatically over time. `;
+  } else {
+    interp += `It looks like expenses are currently at or above income, which is a key area to address. `;
+  }
+  if (R.yearsToRet >= 20) {
+    interp += `With ${R.yearsToRet} years until retirement, you have a powerful runway ahead — time is your greatest financial asset. `;
+  } else if (R.yearsToRet >= 10) {
+    interp += `With ${R.yearsToRet} years until retirement, you're in the critical wealth-building decade. `;
+  } else if (R.yearsToRet > 0) {
+    interp += `With ${R.yearsToRet} years to retirement, every decision you make now carries significant weight. `;
+  }
+  if (R.fundingPct >= 1) {
+    interp += `Your retirement accounts already cover your projected capital need — the focus now shifts to protecting and optimizing what you've built.`;
+  } else if (R.capitalNeeded > 0) {
+    interp += `Closing the ${fmt(R.retGap)} gap is achievable with a consistent plan — and that's exactly where an advisor can help most.`;
+  }
+
+  // ── Next Steps
+  const steps = [];
+  if (R.savingsRate < 0.15) {
+    steps.push({ icon:'💰', title:'Increase Your Savings Rate',
+      text:`Your rate of ${pct(R.savingsRate)} is below the 15–20% target. Your ${fmt(R.cuttable)} in potentially cuttable expenses is a natural starting point.` });
+  }
+  if (R.netWorth <= 0) {
+    steps.push({ icon:'📊', title:'Build Positive Net Worth',
+      text:'Liabilities currently exceed assets. Focus on paying down high-interest debt and building liquid savings before investing aggressively.' });
+  }
+  if (R.fundingPct < 0.80 && R.capitalNeeded > 0) {
+    steps.push({ icon:'🏔️', title:'Close the Retirement Funding Gap',
+      text:`You need to accumulate ${fmt(R.retGap)} more to fully fund retirement. A structured savings and investment plan can systematically close this gap.` });
+  }
+  if (R.insGaps.length > 0) {
+    steps.push({ icon:'🛡️', title:'Address Insurance Gaps',
+      text:`You identified coverage gaps in: ${R.insGaps.join(', ')}. These represent unprotected risks that can derail even the best financial plan.` });
+  }
+  if (R.yearsToRet > 0 && R.yearsToRet <= 10) {
+    steps.push({ icon:'📅', title:'Finalize Your Retirement Income Plan',
+      text:'With retirement on the near horizon, now is the time to map out Social Security timing, withdrawal sequencing, and tax efficiency.' });
+  }
+  if (R.retInc > 0 && R.retExp > 0 && R.retInc < R.retExp * 0.30) {
+    steps.push({ icon:'💵', title:'Explore Guaranteed Income Options',
+      text:'Your projected retirement income covers less than 30% of expected expenses. Explore Social Security optimization, annuities, or pension strategies to reduce portfolio risk.' });
+  }
+  if (steps.length === 0) {
+    steps.push({ icon:'✅', title:'Maintain and Optimize',
+      text:'Your fundamentals look solid. Work with an advisor to optimize tax efficiency, estate planning, and long-term asset protection.' });
+  }
+
+  // ── Scorecard metrics
+  const metrics = [
+    { label:'Savings Rate',           val: pct(R.savingsRate),                        cls: cardClass('sr', R.savingsRate) },
+    { label:'Net Worth',              val: fmtShort(R.netWorth),                      cls: cardClass('nw', R.netWorth) },
+    { label:'Years to Retirement',    val: String(R.yearsToRet),                      cls: cardClass('yr', R.yearsToRet) },
+    { label:'Retirement Funded',      val: pct(Math.min(R.fundingPct, 1)),            cls: cardClass('fp', R.fundingPct) },
+    { label:'Insurance Gaps',         val: String(R.insGaps.length),                  cls: cardClass('ig', R.insGaps.length) },
+    { label:'Capital Needed (4% Rule)', val: fmtShort(R.capitalNeeded),              cls: '' }
+  ];
+
+  document.getElementById('s8').innerHTML = `
+    <div class="card">
+      <div class="result-label">Your Results</div>
+      <div class="result-headline">${headline}</div>
+
+      <div class="scorecard">
+        ${metrics.map(m => `
+          <div class="mc ${m.cls}">
+            <div class="mv">${m.val}</div>
+            <div class="ml">${m.label}</div>
+          </div>`).join('')}
+      </div>
+
+      <div class="interp-box"><p>${interp}</p></div>
+    </div>
+
+    <div class="card">
+      <h2>Your Personalized Next Steps</h2>
+      <p class="sub">Based on your answers, here's where to focus your attention first.</p>
+      <div>
+        ${steps.map(s => `
+          <div class="ns-item">
+            <div class="ns-icon">${s.icon}</div>
+            <div class="ns-body">
+              <strong>${s.title}</strong>
+              <p>${s.text}</p>
+            </div>
+          </div>`).join('')}
+      </div>
+
+      <div class="action-row">
+        <button class="btn-pdf" onclick="dlPDF()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="12" y1="18" x2="12" y2="12"/>
+            <line x1="9"  y1="15" x2="15" y2="15"/>
+          </svg>
+          Download PDF Summary
+        </button>
+        <button class="btn-back" onclick="goTo(2)" style="font-size:14px;padding:11px 18px;">Revise My Answers</button>
+      </div>
+    </div>
+
+    <div class="cta-block" id="book-a-call">
+      <h2>Ready to Turn These Insights Into a Plan?</h2>
+      <p>Our advisors specialize in helping people at exactly your stage of life build wealth with confidence — and without the stress.</p>
+      <a href="#book-a-call" class="btn-cta">Talk to a Mountain Goat Advisor →</a>
+    </div>`;
+
+  // stash for PDF
+  S._R = R;
+  S._steps = steps;
+  S._metrics = metrics;
+  S._interp = interp;
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  PDF GENERATION
+// ─────────────────────────────────────────────────────────────────
+function loadLogoDataURL() {
+  return fetch('assets/images/logo-badge.svg')
+    .then(r => { if (!r.ok) throw new Error(); return r.text(); })
+    .then(svgText => new Promise((resolve) => {
+      const blob = new Blob([svgText], { type: 'image/svg+xml' });
+      const url  = URL.createObjectURL(blob);
+      const img  = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 128; canvas.height = 128;
+        canvas.getContext('2d').drawImage(img, 0, 0, 128, 128);
+        URL.revokeObjectURL(url);
+        resolve(canvas.toDataURL('image/png'));
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); resolve(null); };
+      img.src = url;
+    }))
+    .catch(() => null);
+}
+
+async function dlPDF() {
+  if (!window.jspdf) { alert('PDF library is still loading — please try again in a moment.'); return; }
+  const logoDataURL = await loadLogoDataURL();
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+  const R = S._R, steps = S._steps, metrics = S._metrics;
+  const nm = S.name;
+  const W = 210, M = 18, CW = W - M * 2;
+
+  // ── Header bar
+  doc.setFillColor(28, 28, 28);
+  doc.rect(0, 0, W, 34, 'F');
+  doc.setFillColor(0, 126, 167);
+  doc.rect(0, 31, W, 3, 'F');
+
+  // Logo badge or "MG" fallback
+  const logoSize = 18, logoX = M, logoY = 8;
+  if (logoDataURL) {
+    doc.addImage(logoDataURL, 'PNG', logoX, logoY, logoSize, logoSize);
+  } else {
+    doc.setFillColor(0, 126, 167);
+    doc.roundedRect(logoX, logoY, logoSize, logoSize, 3, 3, 'F');
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(9);
+    doc.setTextColor(255,255,255);
+    doc.text('MG', logoX + logoSize / 2, logoY + logoSize / 2 + 3, { align:'center' });
+  }
+
+  // Header text
+  const textX = M + logoSize + 5;
+  doc.setTextColor(255,255,255);
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(13);
+  doc.text('Mountain Goat Wealth Management', textX, 16);
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(9);
+  doc.setTextColor(176, 190, 197);
+  doc.text('Retirement Self-Assessment', textX, 23);
+  doc.setFontSize(8);
+  doc.setTextColor(153, 153, 153);
+  doc.text(`Prepared for: ${nm}   |   ${new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})}`, textX, 30);
+
+  let y = 44;
+
+  // ── Scorecard
+  doc.setTextColor(0, 126, 167);
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(10);
+  doc.text('YOUR SCORECARD', M, y);
+  y += 6;
+
+  const colW = CW / 3;
+  metrics.forEach((m, i) => {
+    const col = i % 3, row = Math.floor(i / 3);
+    const x = M + col * colW, cardY = y + row * 22;
+    doc.setFillColor(230, 244, 249);
+    doc.roundedRect(x, cardY, colW - 3, 19, 2, 2, 'F');
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(13);
+    doc.setTextColor(0, 126, 167);
+    doc.text(m.val, x + 4, cardY + 10);
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(153, 139, 125);
+    doc.text(m.label.toUpperCase(), x + 4, cardY + 16);
+  });
+  y += Math.ceil(metrics.length / 3) * 22 + 8;
+
+  // ── Divider
+  doc.setDrawColor(176, 190, 197);
+  doc.setLineWidth(0.3);
+  doc.line(M, y, W - M, y);
+  y += 8;
+
+  // ── Interpretation
+  doc.setTextColor(0, 126, 167);
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(10);
+  doc.text('SUMMARY', M, y);
+  y += 5;
+  doc.setFillColor(230, 244, 249);
+  const interpLines = doc.splitTextToSize(S._interp, CW - 8);
+  const interpH = Math.max(18, interpLines.length * 5 + 8);
+  doc.roundedRect(M, y, CW, interpH, 2, 2, 'F');
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(8.5);
+  doc.setTextColor(28, 28, 28);
+  doc.text(interpLines, M + 4, y + 7);
+  y += interpH + 10;
+
+  // ── Next Steps
+  doc.setTextColor(0, 126, 167);
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(10);
+  doc.text('YOUR PERSONALIZED NEXT STEPS', M, y);
+  y += 7;
+
+  steps.forEach((step, i) => {
+    if (y > 250) { doc.addPage(); y = 20; }
+    const stepLines = doc.splitTextToSize(step.text, CW - 18);
+    const stepH = Math.max(18, stepLines.length * 4.5 + 12);
+    doc.setFillColor(255,255,255);
+    doc.setDrawColor(176,190,197);
+    doc.setLineWidth(0.25);
+    doc.roundedRect(M, y, CW, stepH, 2, 2, 'FD');
+    // circle number
+    doc.setFillColor(0,126,167);
+    doc.circle(M + 7, y + stepH/2, 4, 'F');
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(8);
+    doc.setTextColor(255,255,255);
+    doc.text(String(i+1), M + 7, y + stepH/2 + 2.5, { align:'center' });
+    // title
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(9);
+    doc.setTextColor(28,28,28);
+    doc.text(step.title, M + 14, y + 8);
+    // body
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(8);
+    doc.setTextColor(100,100,100);
+    doc.text(stepLines, M + 14, y + 14);
+    y += stepH + 4;
+  });
+
+  // ── Footer
+  const footerY = 277;
+  doc.setFillColor(0,126,167);
+  doc.rect(0, footerY, W, 20, 'F');
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(9.5);
+  doc.setTextColor(255,255,255);
+  doc.text('Ready to build your retirement plan?', W/2, footerY + 8, { align:'center' });
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(8.5);
+  doc.text('mountaingoatwealth.com  |  Schedule a free consultation today', W/2, footerY + 15, { align:'center' });
+
+  doc.save(`MGWM-Retirement-Assessment-${nm.replace(/\s+/g,'-')}.pdf`);
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  HELPERS
+// ─────────────────────────────────────────────────────────────────
+function fmt(n) {
+  if (isNaN(n)) return '$0';
+  return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(n);
+}
+function fmtShort(n) {
+  if (isNaN(n)) return '$0';
+  const abs = Math.abs(n), sign = n < 0 ? '-' : '';
+  if (abs >= 1e6) return `${sign}$${(abs/1e6).toFixed(1)}M`;
+  if (abs >= 1e3) return `${sign}$${(abs/1e3).toFixed(0)}K`;
+  return fmt(n);
+}
+function pct(n) { return `${Math.round((+n||0)*100)}%`; }
+</script>
+</body>
+</html>
